@@ -1,0 +1,6 @@
+id=fd_server
+name=Frida Server
+version=v2
+versionCode=1
+author=KUO
+description=allow frida server been used by MOBSF

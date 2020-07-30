@@ -61,24 +61,33 @@ class Environment:
 
     def connect_n_mount(self):
         """Test ADB Connection."""
+        
         self.adb_command(['kill-server'])
         self.adb_command(['start-server'])
         logger.info('ADB Restarted')
         self.wait(2)
+
         logger.info('Connecting to Android %s', self.identifier)
-        if not self.run_subprocess_verify_output([get_adb(),
-                                                 'connect',
-                                                  self.identifier]):
-            return False
-        logger.info('Restarting ADB Daemon as root')
-        if not self.run_subprocess_verify_output([get_adb(), 'root']):
-            return False
-        logger.info('Reconnecting to Android Device')
-        # connect again with root adb
-        if not self.run_subprocess_verify_output([get_adb(),
-                                                  'connect',
-                                                  self.identifier]):
-            return False
+        if  self.get_environment()=='realdevice':
+            logger.info("Checking if device is rooted ...")
+            if not self.run_subprocess_verify_output([get_adb(), 'root']):
+                return False
+            self.adb_command(['su','-c','ls'],True)
+        else:
+            if not self.run_subprocess_verify_output([get_adb(),
+                                                    'connect',
+                                                    self.identifier]):
+                return False
+            logger.info('Restarting ADB Daemon as root')
+            if not self.run_subprocess_verify_output([get_adb(), 'root']):
+                return False
+            logger.info('Reconnecting to Android Device')
+            
+            # connect again with root adb
+            if not self.run_subprocess_verify_output([get_adb(),
+                                                    'connect',
+                                                    self.identifier]):
+                return False
         # identify environment
         runtime = self.get_environment()
         if runtime == 'emulator':
@@ -86,9 +95,17 @@ class Environment:
             # mount system
             logger.info('Remounting')
             self.adb_command(['remount'])
+            logger.info('Remounting /system')
+            self.adb_command(['mount', '-o',
+                              'rw,remount', '/system'], True)
         elif runtime == 'genymotion':
             logger.info('Found Genymotion x86 VM')
             # mount system
+            logger.info('Remounting /system')
+            self.adb_command(['mount', '-o',
+                              'rw,remount', '/system'], True)
+        elif runtime=='realdevice':
+            logger.info('Found a Real Device')
             logger.info('Remounting /system')
             self.adb_command(['mount', '-o',
                               'rw,remount', '/system'], True)
@@ -321,6 +338,8 @@ class Environment:
         elif (b'genymotion' in out.lower()
                 or any(char.isdigit() for char in ver)):
             return 'genymotion'
+        elif str.encode(self.identifier) in out:
+            return 'realdevice'
         else:
             return ''
 
@@ -512,6 +531,12 @@ class Environment:
 
     def frida_setup(self):
         """Setup Frida."""
+ 
+        if self.adb_command(["ls", "/system/bin/fd_server"] ,True):
+            self.adb_command(['ln','-s','/system/bin/fd_server','/system/fd_server'],True)
+            self.adb_command(['chmod', '755', '/system/fd_server'], True)
+            return 
+
         frida_arch = None
         frida_version = '12.10.4'
         frida_dir = 'onDevice/frida/'

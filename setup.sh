@@ -1,21 +1,21 @@
 #!/bin/bash
 unamestr=$(uname)
-if ! [ -x "$(command -v python3)" ]; then
-  echo '[ERROR] python3 is not installed.' >&2
+if ! [ -x "$(command -v python3.6)" ]; then
+  echo '[ERROR] python3.6 is not installed.' >&2
   exit 1
 fi
-echo '[INSTALL] Found Python3'
+echo '[INSTALL] Found Python3.6'
 
-python3 -m pip -V
+python3.6 -m pip -V
 if [ $? -eq 0 ]; then
   echo '[INSTALL] Found pip'
   if [[ $unamestr == 'Darwin' ]]; then
-      python3 -m pip install --no-cache-dir --upgrade pip
+      python3.6 -m pip install --no-cache-dir --upgrade pip
   else
-      python3 -m pip install --no-cache-dir --upgrade pip --user
+      python3.6 -m pip install --no-cache-dir --upgrade pip --user
   fi
 else
-  echo '[ERROR] python3-pip not installed'
+  echo '[ERROR] python3.6-pip not installed'
   exit 1
 fi
 
@@ -46,7 +46,7 @@ fi
 
 echo '[INSTALL] Using python virtualenv'
 rm -rf ./venv
-python3 -m venv ./venv
+python3.6 -m venv ./venv
 if [ $? -eq 0 ]; then
     echo '[INSTALL] Activating virtualenv'
     source venv/bin/activate
