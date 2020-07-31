@@ -82,6 +82,7 @@ class Frida:
 
     def frida_response(self, message, data):
         """Function to handle frida responses."""
+        print(message,data)
         if 'payload' in message:
             msg = message['payload']
             api_mon = 'MobSF-API-Monitor: '

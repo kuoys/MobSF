@@ -109,6 +109,7 @@ class Environment:
             logger.info('Remounting /system')
             self.adb_command(['mount', '-o',
                               'rw,remount', '/system'], True)
+            self.close_selinux()
         else:
             logger.error('Only Genymotion VM/Android Studio Emulator'
                          ' is supported')
@@ -399,7 +400,9 @@ class Environment:
             logger.error(err_msg)
             return False
         return True
-
+    def close_selinux(self):
+        self.adb_command(['setenforce', '0'],True)
+        return 
     def launch_n_capture(self, package, activity, outfile):
         """Launch and Capture Activity."""
         self.adb_command(['am',
@@ -533,7 +536,7 @@ class Environment:
         """Setup Frida."""
  
         if self.adb_command(["ls", "/system/bin/fd_server"] ,True):
-            self.adb_command(['ln','-s','/system/bin/fd_server','/system/fd_server'],True)
+            self.adb_command(['ln','-sf','/system/bin/fd_server','/system/fd_server'],True)
             self.adb_command(['chmod', '755', '/system/fd_server'], True)
             return 
 
